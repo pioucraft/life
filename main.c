@@ -2,13 +2,14 @@
 #include <stdlib.h>    // For exit() on errors
 #include <stdio.h>     // For fprintf(stderr) error printing
 #include <unistd.h>    // For usleep() to throttle FPS (microseconds delay)
+#include <math.h>
 
 // Constants for window size and timing
 #define WIDTH 800      // Window width in pixels
 #define HEIGHT 600     // Window height in pixels
-#define FPS_DELAY 3333300  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
+#define FPS_DELAY 33333  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
 
-#define PARTICLE_NUM 10
+#define NUM_PARTICLES 4
 
 typedef struct particle {
     float velocity_x;
@@ -24,7 +25,7 @@ particle particles[10];
 int main() {
     // initial position for particles
     srand(42);
-    for(int i = 0; i < PARTICLE_NUM; i++) {
+    for(int i = 0; i < NUM_PARTICLES; i++) {
         particles[i].velocity_x = 0;
         particles[i].velocity_y = 0;
         
@@ -126,33 +127,45 @@ int main() {
         // Animation step 2: Reset GC to white for pixel drawing
         XSetForeground(display, gc, color.pixel);
 
-        for(int i = 0; i < PARTICLE_NUM; i++) {
+        for(int i = 0; i < NUM_PARTICLES; i++) {
             XFillRectangle(display, window, gc, particles[i].x + 1, particles[i].y + 1, 3, 3);
         }
         
-        for(int i = 0; i < PARTICLE_NUM; i++) {
-            float new_x = particles[i].velocity_x;
-            float new_y = particles[i].velocity_y;
+        float center_x = 0;
+        float center_y = 0;
+        for(int i = 0; i < NUM_PARTICLES; i++) {
+            float new_x = 0;
+            float new_y = 0;
+            
+            center_x += particles[i].x;
+            center_y += particles[i].y;
 
-            for(int j = 0; j < PARTICLE_NUM; j++) {
+            for(int j = 0; j < NUM_PARTICLES; j++) {
                 if(j == i) continue;
 
-                new_x += (particles[i].x - particles[j].x);
-                new_x = 1.0 / new_x * new_x;
-                new_x *= particles[i].x > particles[j].x ? -1.0 : 1.0;
+                float x_pos = particles[i].x - particles[j].x;
+                float x_squared = x_pos * x_pos;
 
-                new_y += (particles[i].y - particles[j].y);
-                new_y = 1.0 / new_y * new_y;
-                new_y *= particles[i].y > particles[j].y ? -1.0 : 1.0;
+                float y_pos = particles[i].y - particles[j].y;
+                float y_squared = y_pos * y_pos;
+
+                float r_squared = x_squared + y_squared + 0.01;
+
+                float acceleration = 1.0 / r_squared;
+                printf("%f\n", acceleration);
+
+                new_x += -100.0 * acceleration * x_pos / sqrt(r_squared);
+                new_y += -100.0 * acceleration * y_pos / sqrt(r_squared);
             }
             particles[i].velocity_x += new_x;
             particles[i].velocity_y += new_y;
 
             particles[i].x += particles[i].velocity_x;
-            particles[i].x += particles[i].velocity_y;
+            particles[i].y += particles[i].velocity_y;
 
-            printf("New speed for particle %d... x : %f and y : %f\n", i, new_x, new_y);
+            printf("New speed for particle %d... x : %f and y : %f... Pos x : %f, pos y : %f\n", i, particles[i].velocity_x, particles[i].velocity_y, particles[i].x, particles[i].y);
         }
+        printf("Center of mass... x : %f, y : %f\n", center_x / NUM_PARTICLES, center_y / NUM_PARTICLES);
 
         // update the positions
         
