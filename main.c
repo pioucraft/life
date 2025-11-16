@@ -7,13 +7,12 @@
 // Constants for window size and timing
 #define WIDTH 800      // Window width in pixels
 #define HEIGHT 600     // Window height in pixels
-#define FPS_DELAY 33333  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
+#define FPS_DELAY 333330  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
 
-#define NUM_PARTICLES 4
+#define NUM_PARTICLES 8
 
 typedef struct particle {
-    float velocity_x;
-    float velocity_y;
+    int type;    
 
     float x;
     float y;
@@ -26,11 +25,9 @@ int main() {
     // initial position for particles
     srand(42);
     for(int i = 0; i < NUM_PARTICLES; i++) {
-        particles[i].velocity_x = 0;
-        particles[i].velocity_y = 0;
-        
         particles[i].x = rand() % (WIDTH + 1);
         particles[i].y = rand() % (HEIGHT + 1);
+        particles[i].type = i % 2;
     }
 
 
@@ -73,16 +70,19 @@ int main() {
     GC gc = XCreateGC(display, window, 0, NULL);  // 0: No initial values to set, NULL for defaults
 
     // Step 7: Define and allocate white color for the pixel
-    // XColor struct: red/green/blue components (16-bit each, 0x0000 to 0xFFFF)
-    XColor color;
-    color.red = 0xFFFF;   // Full red intensity
-    color.green = 0xFFFF; // Full green
-    color.blue = 0xFFFF;  // Full blue = white
-    // XAllocColor: Allocates a pixel value from the colormap (hardware-dependent color mapping)
-    // DefaultColormap: Standard RGB colormap for the screen
-    XAllocColor(display, DefaultColormap(display, screen), &color);
-    // Set foreground of GC to the allocated white pixel value
-    XSetForeground(display, gc, color.pixel);
+    XColor color1;
+    color1.red = 0xFFFF;
+    color1.green = 0;
+    color1.blue = 0;
+    XAllocColor(display, DefaultColormap(display, screen), &color1);
+
+    XColor color2;
+    color2.red = 0;
+    color2.green = 0xFFFF;
+    color2.blue = 0;
+    XAllocColor(display, DefaultColormap(display, screen), &color2);
+
+    XSetForeground(display, gc, color1.pixel);
 
     // Step 8: Event handling and animation loop variables
     XEvent event;          // Struct to hold incoming events
@@ -124,22 +124,21 @@ int main() {
         // This erases previous frame for smooth animation
         XFillRectangle(display, window, gc, 0, 0, WIDTH, HEIGHT);
 
-        // Animation step 2: Reset GC to white for pixel drawing
-        XSetForeground(display, gc, color.pixel);
 
         for(int i = 0; i < NUM_PARTICLES; i++) {
-            XFillRectangle(display, window, gc, particles[i].x + 1, particles[i].y + 1, 3, 3);
+            if(particles[i].type == 0) {
+                XSetForeground(display, gc, color1.pixel);
+            }
+            else if(particles[i].type == 1) {
+                XSetForeground(display, gc, color2.pixel);
+            }
+            XFillRectangle(display, window, gc, particles[i].x - 1, particles[i].y - 1, 3, 3);
         }
         
-        float center_x = 0;
-        float center_y = 0;
         for(int i = 0; i < NUM_PARTICLES; i++) {
             float new_x = 0;
             float new_y = 0;
             
-            center_x += particles[i].x;
-            center_y += particles[i].y;
-
             for(int j = 0; j < NUM_PARTICLES; j++) {
                 if(j == i) continue;
 
@@ -149,26 +148,20 @@ int main() {
                 float y_pos = particles[i].y - particles[j].y;
                 float y_squared = y_pos * y_pos;
 
-                float r_squared = x_squared + y_squared + 0.01;
+                float r_squared = x_squared + y_squared;
 
-                float acceleration = 1.0 / r_squared;
-                printf("%f\n", acceleration);
+                float speed = 1.0 / r_squared;
 
-                new_x += -100.0 * acceleration * x_pos / sqrt(r_squared);
-                new_y += -100.0 * acceleration * y_pos / sqrt(r_squared);
+                float coefficient = -1e4 * (particles[i].type == particles[j].type ? -1.0 : 1.0);
+
+                new_x += coefficient * speed * x_pos / sqrt(r_squared);
+                new_y += coefficient * speed * y_pos / sqrt(r_squared);
             }
-            particles[i].velocity_x += new_x;
-            particles[i].velocity_y += new_y;
-
-            particles[i].x += particles[i].velocity_x;
-            particles[i].y += particles[i].velocity_y;
-
-            printf("New speed for particle %d... x : %f and y : %f... Pos x : %f, pos y : %f\n", i, particles[i].velocity_x, particles[i].velocity_y, particles[i].x, particles[i].y);
+            particles[i].x += new_x;
+            particles[i].y += new_y;
+            
+            printf("New speed for particle %d... x : %f and y : %f... Pos x : %f, pos y : %f\n", i, new_x, new_y, particles[i].x, particles[i].y);
         }
-        printf("Center of mass... x : %f, y : %f\n", center_x / NUM_PARTICLES, center_y / NUM_PARTICLES);
-
-        // update the positions
-        
 
         // Step 5: Flush changes to display
         // XFlush: Sends all pending drawing requests to X server immediately
