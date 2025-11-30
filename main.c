@@ -7,9 +7,9 @@
 // Constants for window size and timing
 #define WIDTH 800      // Window width in pixels
 #define HEIGHT 600     // Window height in pixels
-#define FPS_DELAY 333330  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
+#define FPS_DELAY 33333  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
 
-#define NUM_PARTICLES 8
+#define NUM_PARTICLES 300
 
 typedef struct particle {
     int type;    
@@ -27,7 +27,7 @@ int main() {
     for(int i = 0; i < NUM_PARTICLES; i++) {
         particles[i].x = rand() % (WIDTH + 1);
         particles[i].y = rand() % (HEIGHT + 1);
-        particles[i].type = i % 2;
+        particles[i].type = i % 3;
     }
 
 
@@ -82,6 +82,12 @@ int main() {
     color2.blue = 0;
     XAllocColor(display, DefaultColormap(display, screen), &color2);
 
+    XColor color3;
+    color3.red = 0;
+    color3.green = 0;
+    color3.blue = 0xFFFF;
+    XAllocColor(display, DefaultColormap(display, screen), &color3);
+
     XSetForeground(display, gc, color1.pixel);
 
     // Step 8: Event handling and animation loop variables
@@ -132,6 +138,9 @@ int main() {
             else if(particles[i].type == 1) {
                 XSetForeground(display, gc, color2.pixel);
             }
+            else if (particles[i].type == 2) {
+                XSetForeground(display, gc, color3.pixel);
+            }
             XFillRectangle(display, window, gc, particles[i].x - 1, particles[i].y - 1, 3, 3);
         }
         
@@ -149,10 +158,33 @@ int main() {
                 float y_squared = y_pos * y_pos;
 
                 float r_squared = x_squared + y_squared;
+                if(r_squared < 1000.0) continue;
 
                 float speed = 1.0 / r_squared;
 
-                float coefficient = -1e4 * (particles[i].type == particles[j].type ? -1.0 : 1.0);
+                float coefficient = -1e4;
+
+                if(particles[i].type == 0 && particles[j].type == 1) {
+                    coefficient *= 1.0;
+                }
+                else if(particles[i].type == 1 && particles[j].type == 0) {
+                    coefficient *= -1.0;
+                }
+
+                else if(particles[i].type == 0 && particles[j].type == 2) {
+                    coefficient *= -1.0;
+                }
+                else if(particles[i].type == 2 && particles[j].type == 0) {
+                    coefficient *= 1.0;
+                }
+
+                else if(particles[i].type == 1 && particles[j].type == 2) {
+                    coefficient *= -1.0;
+                }
+                else if(particles[i].type == 2 && particles[j].type == 1) {
+                    coefficient *= 1.0;
+                }
+                else coefficient = 0;
 
                 new_x += coefficient * speed * x_pos / sqrt(r_squared);
                 new_y += coefficient * speed * y_pos / sqrt(r_squared);
@@ -160,6 +192,11 @@ int main() {
             particles[i].x += new_x;
             particles[i].y += new_y;
             
+            if(particles[i].x > WIDTH) particles[i].x = 0; 
+            if(particles[i].x < 0) particles[i].x = WIDTH; 
+            if(particles[i].y > HEIGHT) particles[i].y = 0; 
+            if(particles[i].y < 0) particles[i].y = HEIGHT; 
+
             printf("New speed for particle %d... x : %f and y : %f... Pos x : %f, pos y : %f\n", i, new_x, new_y, particles[i].x, particles[i].y);
         }
 
