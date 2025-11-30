@@ -11,8 +11,8 @@
 #define DEBUG 0
 
 #define NUM_PARTICLES 600
-#define COEFFICIENT 5 * 1e-2
-#define SQUARED_RADIUS_MIN 1000.0
+#define COEFFICIENT 5 * 1e-3
+#define SQUARED_RADIUS_MIN 100
 
 typedef struct particle {
     int type;    
