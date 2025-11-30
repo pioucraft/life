@@ -7,9 +7,10 @@
 // Constants for window size and timing
 #define WIDTH 1000      // Window width in pixels
 #define HEIGHT 1000     // Window height in pixels
-#define FPS_DELAY 33333  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
+#define FPS_DELAY 0  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
 
-#define NUM_PARTICLES 200
+#define NUM_PARTICLES 1200
+#define COEFFICIENT 1e-2
 
 typedef struct particle {
     int type;    
@@ -164,9 +165,8 @@ int main() {
                 float y_squared = y_pos * y_pos;
 
                 float r_squared = x_squared + y_squared;
-                if(r_squared < 1000.0) continue;
 
-                float speed = 0.1 / r_squared;
+                float speed = COEFFICIENT / r_squared;
 
                 float coefficient = -1e4;
 
@@ -198,6 +198,8 @@ int main() {
                     coefficient *= -1.0;
                 }
                 else coefficient = 0;
+
+                if(coefficient < 0.0 && r_squared < 1000.0) continue;
 
                 new_x += coefficient * speed * x_pos / sqrt(r_squared);
                 new_y += coefficient * speed * y_pos / sqrt(r_squared);
