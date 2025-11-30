@@ -7,10 +7,12 @@
 // Constants for window size and timing
 #define WIDTH 1000      // Window width in pixels
 #define HEIGHT 1000     // Window height in pixels
-#define FPS_DELAY 0  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
+#define FPS_DELAY 33333  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
+#define DEBUG 0
 
-#define NUM_PARTICLES 1200
-#define COEFFICIENT 1e-2
+#define NUM_PARTICLES 600
+#define COEFFICIENT 5 * 1e-2
+#define SQUARED_RADIUS_MIN 1000.0
 
 typedef struct particle {
     int type;    
@@ -199,7 +201,7 @@ int main() {
                 }
                 else coefficient = 0;
 
-                if(coefficient < 0.0 && r_squared < 1000.0) continue;
+                if(coefficient < 0.0 && r_squared < SQUARED_RADIUS_MIN) continue;
 
                 new_x += coefficient * speed * x_pos / sqrt(r_squared);
                 new_y += coefficient * speed * y_pos / sqrt(r_squared);
@@ -212,7 +214,7 @@ int main() {
             if(particles[i].y > HEIGHT) particles[i].y -= WIDTH; 
             if(particles[i].y < 0) particles[i].y += HEIGHT; 
 
-            printf("New speed for particle %d... x : %f and y : %f... Pos x : %f, pos y : %f\n", i, new_x, new_y, particles[i].x, particles[i].y);
+            if(DEBUG) printf("New speed for particle %d... x : %f and y : %f... Pos x : %f, pos y : %f\n", i, new_x, new_y, particles[i].x, particles[i].y);
         }
 
         // Step 5: Flush changes to display
