@@ -151,10 +151,16 @@ int main() {
             for(int j = 0; j < NUM_PARTICLES; j++) {
                 if(j == i) continue;
 
-                float x_pos = particles[i].x - particles[j].x;
+                float x_pos_n = particles[i].x - particles[j].x;
+                float x_pos_jb = particles[i].x - particles[j].x + WIDTH;
+                float x_pos_ib = particles[i].x - particles[j].x - WIDTH;
+                float x_pos = x_pos_n * x_pos_n > x_pos_jb * x_pos_jb ? (x_pos_jb * x_pos_jb > x_pos_ib * x_pos_ib ? x_pos_ib : x_pos_jb) : (x_pos_n * x_pos_n > x_pos_ib * x_pos_ib ? x_pos_ib : x_pos_n);
                 float x_squared = x_pos * x_pos;
 
-                float y_pos = particles[i].y - particles[j].y;
+                float y_pos_n = particles[i].y - particles[j].y;
+                float y_pos_jb = particles[i].y - particles[j].y + WIDTH;
+                float y_pos_ib = particles[i].y - particles[j].y - WIDTH;
+                float y_pos = y_pos_n * y_pos_n > y_pos_jb * y_pos_jb ? (y_pos_jb * y_pos_jb > y_pos_ib * y_pos_ib ? y_pos_ib : y_pos_jb) : (y_pos_n * y_pos_n > y_pos_ib * y_pos_ib ? y_pos_ib : y_pos_n);
                 float y_squared = y_pos * y_pos;
 
                 float r_squared = x_squared + y_squared;
@@ -199,10 +205,10 @@ int main() {
             particles[i].x += new_x;
             particles[i].y += new_y;
             
-            if(particles[i].x > WIDTH) particles[i].x = 0; 
-            if(particles[i].x < 0) particles[i].x = WIDTH; 
-            if(particles[i].y > HEIGHT) particles[i].y = 0; 
-            if(particles[i].y < 0) particles[i].y = HEIGHT; 
+            if(particles[i].x > WIDTH) particles[i].x -= WIDTH; 
+            if(particles[i].x < 0) particles[i].x += WIDTH; 
+            if(particles[i].y > HEIGHT) particles[i].y -= WIDTH; 
+            if(particles[i].y < 0) particles[i].y += HEIGHT; 
 
             printf("New speed for particle %d... x : %f and y : %f... Pos x : %f, pos y : %f\n", i, new_x, new_y, particles[i].x, particles[i].y);
         }
