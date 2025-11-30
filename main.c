@@ -5,11 +5,11 @@
 #include <math.h>
 
 // Constants for window size and timing
-#define WIDTH 800      // Window width in pixels
-#define HEIGHT 600     // Window height in pixels
+#define WIDTH 1000      // Window width in pixels
+#define HEIGHT 1000     // Window height in pixels
 #define FPS_DELAY 33333  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
 
-#define NUM_PARTICLES 300
+#define NUM_PARTICLES 400
 
 typedef struct particle {
     int type;    
@@ -18,7 +18,7 @@ typedef struct particle {
     float y;
 } particle;
 
-particle particles[10];
+particle particles[NUM_PARTICLES];
 
 // Main function: Entry point of the program
 int main() {
@@ -170,6 +170,9 @@ int main() {
                 else if(particles[i].type == 1 && particles[j].type == 0) {
                     coefficient *= -1.0;
                 }
+                else if (particles[i].type == particles[j].type) {
+                    coefficient *= 1.0;
+                }
 
                 else if(particles[i].type == 0 && particles[j].type == 2) {
                     coefficient *= -1.0;
@@ -179,10 +182,10 @@ int main() {
                 }
 
                 else if(particles[i].type == 1 && particles[j].type == 2) {
-                    coefficient *= -1.0;
+                    coefficient *= 1.0;
                 }
                 else if(particles[i].type == 2 && particles[j].type == 1) {
-                    coefficient *= 1.0;
+                    coefficient *= -1.0;
                 }
                 else coefficient = 0;
 
