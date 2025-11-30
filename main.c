@@ -9,7 +9,7 @@
 #define HEIGHT 1000     // Window height in pixels
 #define FPS_DELAY 33333  // Delay in microseconds: ~30 FPS (1000000 / 30 ≈ 33333)
 
-#define NUM_PARTICLES 400
+#define NUM_PARTICLES 200
 
 typedef struct particle {
     int type;    
@@ -160,18 +160,22 @@ int main() {
                 float r_squared = x_squared + y_squared;
                 if(r_squared < 1000.0) continue;
 
-                float speed = 1.0 / r_squared;
+                float speed = 0.1 / r_squared;
 
                 float coefficient = -1e4;
 
-                if(particles[i].type == 0 && particles[j].type == 1) {
-                    coefficient *= 1.0;
-                }
-                else if(particles[i].type == 1 && particles[j].type == 0) {
+                if(particles[i].type == 0 && particles[j].type == 0) {
                     coefficient *= -1.0;
                 }
                 else if (particles[i].type == particles[j].type) {
                     coefficient *= 1.0;
+                }
+
+                else if(particles[i].type == 0 && particles[j].type == 1) {
+                    coefficient *= 1.0;
+                }
+                else if(particles[i].type == 1 && particles[j].type == 0) {
+                    coefficient *= -1.0;
                 }
 
                 else if(particles[i].type == 0 && particles[j].type == 2) {
